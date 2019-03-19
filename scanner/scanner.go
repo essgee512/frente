@@ -29,7 +29,7 @@ const (
 
 // TODO; remove before "release"
 func (tok Token) String() string {
-	return [...]string{"tILLEGAL", "tEOF", "tDELIM", "tEOL", "tCR", "tNL", "tWS", "tNES"}[tok]
+	return [...]string{"ILLEGAL", "EOF", "DELIM", "EOL", "CR", "NL", "WS", "NES"}[tok]
 }
 
 const (
