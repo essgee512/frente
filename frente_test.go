@@ -23,49 +23,50 @@ func TestSplit(t *testing.T) {
       body:  []byte("body"),
       err:   nil,
     },
-    { // empty front
-      in:    []byte("---\n---\nbody"),
-      front: []byte(""),
-      body:  []byte("body"),
-      err:   nil,
-    },
-    { // empty body
-      in:    []byte("---\nfront\n---\n"),
+    {
+      // body has CDL
+      in:    []byte("---\nfront\n---\nbody\n---\n"),
       front: []byte("front"),
-      body:  []byte(""),
-      err:   nil,
-    },
-    { // empty front and empty body
-      in:    []byte("---\n---\n"),
-      front: []byte(""),
-      body:  []byte(""),
+      body:  []byte("body\n---\n"),
       err:   nil,
     },
     {
-      in:    []byte(" ---\n---\n"),
-      front: []byte(""),
-      body:  []byte(""),
-      err:   fmt.Errorf(`matter must begin with the delimiter. found " ---", expected "---\n"`),
+      // body has CDL edge case
+      in:    []byte("---\nfront\n---\n---\n"),
+      front: []byte("front"),
+      body:  []byte("---\n"),
+      err:   nil,
     },
     {
-      in:    []byte("---front\n---\nbody"),
+      in:    []byte("  ---\nfront\n---\nbody"),
       front: []byte(""),
       body:  []byte(""),
-      err:   fmt.Errorf(`the delimiter must be the only string on the line.`),
+      err:   fmt.Errorf("matter must begin with ODL := '---[NL]'."),
     },
-    // {
-    //   in:    []byte("---\nfront\nmissing\n"),
-    //   front: []byte("front---\n"),
-    //   body:  []byte(""),
-    //   err:   fmt.Errorf("closing delimeter not found"),
-    // },   
-    // {
-    //   in:    []byte("---\nfront---\n"),
-    //   front: []byte("front---\n"),
-    //   body:  []byte(""),
-    //   err:   fmt.Errorf("closing delimeter not found"),
-    // },
-
+    {
+      in:    []byte("---  \nfront\n---\nbody"),
+      front: []byte(""),
+      body:  []byte(""),
+      err:   fmt.Errorf("matter must begin with ODL := '---[NL]'."),
+    },
+    {
+      in:    []byte("---\nfront\nmissing CDL\n"),
+      front: []byte(""),
+      body:  []byte(""),
+      err:   fmt.Errorf("matter must have a CDL := '[NL]---[NL]'."),
+    },
+    {
+      in:    []byte("---\nfront\n ---\nbody\n"),
+      front: []byte(""),
+      body:  []byte(""),
+      err:   fmt.Errorf("matter must have a CDL := '[NL]---[NL]'."),
+    },
+    {
+      in:    []byte("---\nfront\n--- \nbody\n"),
+      front: []byte(""),
+      body:  []byte(""),
+      err:   fmt.Errorf("matter must have a CDL := '[NL]---[NL]'."),
+    },
   }
 
   for i, expected := range scenarios {

@@ -16,23 +16,13 @@ func Split(matter []byte, delim string) ([]byte, []byte, error) {
   p := newParser(bufio.NewReader(bytes.NewBuffer(matter)), delim)
   openDelim := delim + nl
   closeDelim := nl + delim + nl
+  empty := []byte("")
   front := bytes.NewBufferString("")
   body := bytes.NewBufferString("")
-  // var front, body bytes.Buffer
 
   // matter must begin with an opening delimeter
   if !p.isNext(openDelim) {
-    found, _ := p.r.Peek(len(openDelim))
-    expected := delim + nl
-    return front.Bytes(), body.Bytes(), fmt.Errorf("matter must begin with the delimiter. found %q, expected %q", found, expected)
-  }
-
-  // handle case of empty front
-  if p.isNext(openDelim + openDelim) {        // 2 contiguous openDelims implies and empty front
-    p.readN(2 * len(openDelim))               // consume delims
-    b, _ := p.readUpto(eof)                   // capture body
-    body.WriteString(b)
-    return front.Bytes(), body.Bytes(), nil   // front is empty
+    return empty, empty, fmt.Errorf("matter must begin with ODL := '%s[NL]'.", delim)
   }
 
   p.readN(len(openDelim))                     // consume opening delimiter
@@ -41,7 +31,7 @@ func Split(matter []byte, delim string) ([]byte, []byte, error) {
 
   // matter must have a closing delimeter
   if err != nil {
-    return front.Bytes(), body.Bytes(), fmt.Errorf("closing delimeter not found")
+    return empty, empty, fmt.Errorf("matter must have a CDL := '[NL]%s[NL]'.", delim)
   }
 
   p.readN(len(closeDelim))                    // consume closing delimeter
@@ -82,7 +72,7 @@ func (p *parser) readN(n int) string {
 func (p *parser) readUpto(str string) (string, error) {
   var buf bytes.Buffer
   if p.isNext(eof) {
-    return buf.String(), fmt.Errorf("%q not found", str)
+    return eof, fmt.Errorf("%q not found", str)
   }
   buf.WriteRune(p.read())
   for {
